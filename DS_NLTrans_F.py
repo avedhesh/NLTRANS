@@ -30,14 +30,14 @@ def calculate_position(nozzle, support_height, R, L):
         
         if "Top" in location:
             # Top head position calculation
-            base_elevation = support_height + L
+            base_elevation = support_height + L + head_depth
             if "Hemispherical" in location:
                 Y = base_elevation + head_depth - math.sqrt(head_depth**2 - offset**2)
             else:  # Ellipsoidal
                 k = aspect_ratio
                 Y = base_elevation + head_depth * (1 - math.sqrt(1 - (offset**2)/(R**2)))
         else:  # Bottom head
-            base_elevation = support_height
+            base_elevation = support_height - head_depth
             if "Hemispherical" in location:
                 Y = base_elevation - head_depth + math.sqrt(head_depth**2 - offset**2)
             else:  # Ellipsoidal
