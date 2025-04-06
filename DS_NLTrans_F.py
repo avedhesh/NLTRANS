@@ -1,16 +1,17 @@
 import streamlit as st
 import math
- 
+
 def calculate_head_depth(head_type, R, aspect_ratio=2.0):
-    """Calculate depth of different head types"""
+    """Calculate depth of different head types with proper geometry"""
     if "Hemispherical" in head_type:
-        return R
+        return R  # Depth = radius for hemispherical
     elif "Ellipsoidal" in head_type:
-        return R / aspect_ratio
+        # For 2:1 ellipsoidal heads (major axis/minor axis = 2:1)
+        return R / aspect_ratio  # Typically R/2 for standard 2:1 heads
     return 0.0
- 
+
 def calculate_position(nozzle, support_height, R, L):
-    """Calculate nozzle position in global coordinates"""
+    """Calculate nozzle position in global coordinates with proper head geometry"""
     location = nozzle['location']
     θ = math.radians(nozzle['theta'])
     offset = nozzle['offset']
@@ -19,7 +20,7 @@ def calculate_position(nozzle, support_height, R, L):
     X = offset * math.sin(θ)
     Z = -offset * math.cos(θ)  # 0° = -Z direction
     
-    # Vertical component (Y-axis)
+    # Vertical component (Y-axis) with proper head geometry
     if location == "Shell":
         Y = support_height + nozzle['elevation']
     else:
@@ -28,16 +29,23 @@ def calculate_position(nozzle, support_height, R, L):
         head_depth = calculate_head_depth(head_type, R, aspect_ratio)
         
         if "Top" in location:
-            # Top head: add head depth to support height + vessel length
-            base_elevation = support_height + L + head_depth
-            Y = base_elevation - math.sqrt(head_depth**2 - offset**2)
+            # Top head position calculation
+            base_elevation = support_height + L
+            if "Hemispherical" in location:
+                Y = base_elevation + head_depth - math.sqrt(head_depth**2 - offset**2)
+            else:  # Ellipsoidal
+                k = aspect_ratio
+                Y = base_elevation + head_depth * (1 - math.sqrt(1 - (offset**2)/(R**2)))
         else:  # Bottom head
-            # Bottom head: subtract head depth from support height
-            base_elevation = support_height - head_depth
-            Y = base_elevation + math.sqrt(head_depth**2 - offset**2)
+            base_elevation = support_height
+            if "Hemispherical" in location:
+                Y = base_elevation - head_depth + math.sqrt(head_depth**2 - offset**2)
+            else:  # Ellipsoidal
+                k = aspect_ratio
+                Y = base_elevation - head_depth * (1 - math.sqrt(1 - (offset**2)/(R**2)))
     
     return X, Y, Z
- 
+
 def transform_loads(nozzle, support_height, R, L):
     """Transform local loads to global coordinate system"""
     X, Y, Z = calculate_position(nozzle, support_height, R, L)
