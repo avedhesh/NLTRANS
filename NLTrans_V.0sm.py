@@ -211,7 +211,7 @@ def main():
                     
                     # Display image based on location
                     image_map = {
-                        "Shell": "images/shell.png",
+                        "Shell": "images/Shell.png",
                         "Hemispherical Top Head": "images/hemi_top.png",
                         "Hemispherical Bottom Head": "images/hemi_bottom.png",
                         "Ellipsoidal Top Head": "images/ellip_top.png",
